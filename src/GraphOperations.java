@@ -186,7 +186,6 @@ public class GraphOperations {
             Arrays.fill(dist, Integer.MAX_VALUE);
             dist[s] = 0;
 
-            // relax
             for (int i = 0; i < V - 1; i++) {
                 for (Edge edge : edges) {
                     int u = edge.u;
