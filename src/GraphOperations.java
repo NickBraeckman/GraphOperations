@@ -32,6 +32,7 @@ public class GraphOperations {
     public static class Graph {
         int V;
         int[][] graph;
+        int[] color;
         List<Edge> edges;
         boolean isDirected;
 
@@ -53,9 +54,9 @@ public class GraphOperations {
             }
         }
 
-        public void topSort() {
+        public Stack<Integer> topSort() {
             List<Integer> visited = new ArrayList<>();
-            LinkedList<Integer> sortedList = new LinkedList<>();
+            Stack<Integer> sortedList = new Stack<>();
             StringBuilder sb = new StringBuilder();
 
             visited.add(0);
@@ -69,17 +70,18 @@ public class GraphOperations {
                 sb.append(v).append(", ");
             }
             System.out.println(sb.toString());
+            return sortedList;
 
         }
 
-        private void topSortUtil(int u, List<Integer> visited, LinkedList<Integer> sortedList) {
+        private void topSortUtil(int u, List<Integer> visited, Stack<Integer> sortedList) {
             for (int v = 0; v < V; v++) {
                 if (graph[u][v] != 0 && !visited.contains(v)) {
                     visited.add(v);
                     topSortUtil(v, visited, sortedList);
                 }
             }
-            sortedList.add(u);
+            sortedList.push(u);
         }
 
         public void dfs(int s) {
@@ -101,9 +103,11 @@ public class GraphOperations {
 
         private void dfsUtil(int u, List<Integer> visited) {
             for (int v = 0; v < V; v++) {
-                if (graph[u][v] != 0 && !visited.contains(v)) {
-                    visited.add(v);
-                    dfsUtil(v, visited);
+                if (graph[u][v] != 0) {
+                    if (!visited.contains(v)) {
+                        visited.add(v);
+                        dfsUtil(v, visited);
+                    }
                 }
             }
         }
@@ -141,18 +145,21 @@ public class GraphOperations {
             int[] parent = new int[V];
             int[] Q = new int[V];
 
+            // initialize single source
             Arrays.fill(dist, Integer.MAX_VALUE);
-
             dist[s] = 0;
 
             for (int count = 0; count < V - 1; count++) {
                 int u = minKey(dist, Q);
                 Q[u] = 1;
                 for (int v = 0; v < V; v++) {
+
+                    // relax
                     if (graph[u][v] != 0 && Q[v] == 0 && dist[v] > dist[u] + graph[u][v]) {
                         dist[v] = dist[u] + graph[u][v];
                         parent[v] = u;
                     }
+
                 }
             }
 
@@ -175,7 +182,7 @@ public class GraphOperations {
             int parent[] = new int[V];
             int dist[] = new int[V];
 
-            // init
+            // initialize single source
             Arrays.fill(dist, Integer.MAX_VALUE);
             dist[s] = 0;
 
@@ -185,6 +192,8 @@ public class GraphOperations {
                     int u = edge.u;
                     int v = edge.v;
                     int w = edge.weight;
+
+                    // relax
                     if (dist[u] != Integer.MAX_VALUE && dist[v] > dist[u] + w) {
                         dist[v] = dist[u] + w;
                         parent[v] = u;
@@ -211,6 +220,49 @@ public class GraphOperations {
             return true;
         }
 
+        public void dagShortestPaths(int s) {
+            if (!isDirected) {
+                return;
+            }
+            StringBuilder sb = new StringBuilder();
+            Stack<Integer> sortedList = topSort();
+            int[] parent = new int[V];
+            int[] dist = new int[V];
+
+            // initialize single source
+            Arrays.fill(dist, Integer.MAX_VALUE);
+            dist[s] = 0;
+
+            while (!sortedList.isEmpty()) {
+                int u = sortedList.pop();
+
+                for (int v = 0; v < V; v++) {
+                    if (graph[u][v] != 0) {
+                        // relax
+                        if (dist[u] != Integer.MAX_VALUE && dist[v] > dist[u] + graph[u][v]) {
+                            dist[v] = dist[u] + graph[u][v];
+                            parent[v] = u;
+                        }
+                    }
+                }
+            }
+
+            sb.append("\n");
+            sb.append("----------- DAG-SHORTEST-PATHS -----------");
+            sb.append("\n");
+
+            for (int i = 0; i < dist.length; i++) {
+                sb.append(s).append(" -> ").append(i).append(" distance: ");
+                if (dist[i] == Integer.MAX_VALUE) {
+                    sb.append("INF");
+                } else {
+                    sb.append(dist[i]);
+                }
+                sb.append("\n");
+            }
+
+            System.out.println(sb.toString());
+        }
 
         public void kruskal() {
             int[][] mst = new int[graph.length][graph.length];
@@ -370,7 +422,8 @@ public class GraphOperations {
     }
 
     public static void main(String[] args) {
-        Graph graph = new Graph(9,false);
+
+        Graph graph = new Graph(9, true);
         graph.addEdge(0, 1, 4);
         graph.addEdge(1, 2, 8);
         graph.addEdge(2, 3, 7);
@@ -392,5 +445,18 @@ public class GraphOperations {
         graph.topSort();
         graph.bf(0);
         graph.dijkstra(0);
+
+        Graph g = new Graph(6, true);
+        g.addEdge(0, 1, 5);
+        g.addEdge(0, 2, 3);
+        g.addEdge(1, 3, 6);
+        g.addEdge(1, 2, 2);
+        g.addEdge(2, 4, 4);
+        g.addEdge(2, 5, 2);
+        g.addEdge(2, 3, 7);
+        g.addEdge(3, 4, -1);
+        g.addEdge(4, 5, -2);
+        // only use when directed acyclic graph
+        g.dagShortestPaths(1);
     }
 }
