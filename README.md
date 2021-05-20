@@ -1,4 +1,4 @@
-# GraphOperations
+# Graph Operations
 
 - Graph traversing algorithms
 
